@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}CosmoView{% endblock %} — Space & Astronomy Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --void: #02020a;
+      --deep: #060614;
+      --nebula-dark: #0a0a1f;
+      --nebula: #0d0d2b;
+      --panel: #111130;
+      --card: #13133a;
+      --accent-blue: #00d4ff;
+      --accent-purple: #b44fff;
+      --accent-gold: #ffd166;
+      --accent-green: #06ffa5;
+      --accent-red: #ff4757;
+      --text: #e8e8f0;
+      --text-dim: #8888aa;
+      --text-bright: #ffffff;
+      --border: rgba(0,212,255,0.15);
+      --glow-blue: 0 0 20px rgba(0,212,255,0.4);
+      --glow-purple: 0 0 20px rgba(180,79,255,0.4);
+      --glow-gold: 0 0 20px rgba(255,209,102,0.4);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'Exo 2',sans-serif;
+      background:var(--void);
+      color:var(--text);
+      min-height:100vh;
+      overflow-x:hidden;
+      cursor:default;
+    }
+
+    /* ── Stars Background ── */
+    #starfield{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+    .star{position:absolute;border-radius:50%;animation:twinkle var(--d) ease-in-out infinite alternate}
+    @keyframes twinkle{0%{opacity:var(--min-op);transform:scale(1)}100%{opacity:1;transform:scale(1.3)}}
+    .shooting-star{
+      position:absolute;width:2px;height:2px;background:#fff;
+      box-shadow:0 0 6px 2px rgba(255,255,255,0.8);
+      animation:shoot 3s linear infinite;
+      opacity:0;
+    }
+    @keyframes shoot{
+      0%{transform:translateX(0) translateY(0) rotate(-45deg);opacity:1}
+      100%{transform:translateX(300px) translateY(300px) rotate(-45deg);opacity:0}
+    }
+
+    /* ── Navigation ── */
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:1000;
+      background:rgba(6,6,20,0.92);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+      padding:0 2rem;
+      height:64px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .nav-logo{
+      font-family:'Orbitron',sans-serif;
+      font-size:1.4rem;font-weight:900;
+      background:linear-gradient(90deg,var(--accent-blue),var(--accent-purple));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      text-decoration:none;letter-spacing:0.05em;
+    }
+    .nav-logo span{color:var(--accent-gold);-webkit-text-fill-color:var(--accent-gold)}
+    .nav-links{display:flex;gap:0.25rem;align-items:center}
+    .nav-links a{
+      color:var(--text-dim);text-decoration:none;
+      font-size:0.85rem;font-weight:500;letter-spacing:0.04em;
+      padding:0.4rem 0.75rem;border-radius:6px;
+      transition:all 0.2s;display:flex;align-items:center;gap:0.4rem;
+      text-transform:uppercase;
+    }
+    .nav-links a:hover,.nav-links a.active{
+      color:var(--accent-blue);
+      background:rgba(0,212,255,0.08);
+    }
+    .nav-links a i{font-size:0.8rem}
+    .nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px}
+    .nav-hamburger span{display:block;width:22px;height:2px;background:var(--text-dim);transition:all 0.3s}
+    @media(max-width:768px){
+      .nav-links{
+        display:none;position:fixed;top:64px;left:0;right:0;
+        background:rgba(6,6,20,0.98);backdrop-filter:blur(20px);
+        flex-direction:column;padding:1rem;border-bottom:1px solid var(--border);
+      }
+      .nav-links.open{display:flex}
+      .nav-hamburger{display:flex}
+    }
+
+    /* ── Page Layout ── */
+    main{position:relative;z-index:1;padding-top:64px;min-height:100vh}
+    .page-hero{
+      text-align:center;padding:4rem 2rem 3rem;
+      background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,212,255,0.06) 0%, transparent 70%);
+    }
+    .page-hero h1{
+      font-family:'Orbitron',sans-serif;
+      font-size:clamp(1.8rem,5vw,3rem);
+      font-weight:700;
+      margin-bottom:0.75rem;
+      letter-spacing:0.05em;
+    }
+    .page-hero p{color:var(--text-dim);font-size:1.05rem;max-width:600px;margin:0 auto}
+    .gradient-text{
+      background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple),var(--accent-gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+
+    /* ── Cards & Panels ── */
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      transition:transform 0.3s,border-color 0.3s,box-shadow 0.3s;
+    }
+    .card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(0,212,255,0.35);
+      box-shadow:var(--glow-blue);
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;padding:1.5rem;
+    }
+
+    /* ── Buttons ── */
+    .btn{
+      display:inline-flex;align-items:center;gap:0.5rem;
+      padding:0.65rem 1.4rem;border-radius:8px;
+      font-family:'Exo 2',sans-serif;font-size:0.9rem;font-weight:600;
+      cursor:pointer;border:none;text-decoration:none;
+      transition:all 0.25s;letter-spacing:0.03em;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,var(--accent-blue),#0099cc);
+      color:var(--void);
+      box-shadow:0 4px 15px rgba(0,212,255,0.3);
+    }
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(0,212,255,0.5)}
+    .btn-secondary{
+      background:transparent;border:1px solid var(--accent-blue);
+      color:var(--accent-blue);
+    }
+    .btn-secondary:hover{background:rgba(0,212,255,0.1)}
+    .btn-purple{
+      background:linear-gradient(135deg,var(--accent-purple),#7b2fff);
+      color:#fff;box-shadow:0 4px 15px rgba(180,79,255,0.3);
+    }
+    .btn-purple:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(180,79,255,0.5)}
+    .btn-gold{
+      background:linear-gradient(135deg,var(--accent-gold),#e6b800);
+      color:var(--void);box-shadow:0 4px 15px rgba(255,209,102,0.3);
+    }
+    .btn-gold:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(255,209,102,0.5)}
+    .btn-sm{padding:0.4rem 0.9rem;font-size:0.8rem}
+
+    /* ── Inputs ── */
+    .input-field{
+      background:rgba(255,255,255,0.05);
+      border:1px solid var(--border);border-radius:8px;
+      color:var(--text);font-family:'Exo 2',sans-serif;font-size:0.95rem;
+      padding:0.65rem 1rem;width:100%;
+      transition:border-color 0.2s,box-shadow 0.2s;
+    }
+    .input-field:focus{outline:none;border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
+    .input-field::placeholder{color:var(--text-dim)}
+
+    /* ── Loading ── */
+    .loader{
+      display:flex;align-items:center;justify-content:center;
+      gap:0.5rem;color:var(--text-dim);padding:3rem;
+    }
+    .spinner{
+      width:32px;height:32px;border:3px solid rgba(0,212,255,0.2);
+      border-top-color:var(--accent-blue);border-radius:50%;
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── Badge / Tag ── */
+    .badge{
+      display:inline-block;padding:0.25rem 0.6rem;border-radius:20px;
+      font-size:0.75rem;font-weight:600;letter-spacing:0.04em;
+      text-transform:uppercase;
+    }
+    .badge-blue{background:rgba(0,212,255,0.15);color:var(--accent-blue);border:1px solid rgba(0,212,255,0.3)}
+    .badge-purple{background:rgba(180,79,255,0.15);color:var(--accent-purple);border:1px solid rgba(180,79,255,0.3)}
+    .badge-gold{background:rgba(255,209,102,0.15);color:var(--accent-gold);border:1px solid rgba(255,209,102,0.3)}
+    .badge-green{background:rgba(6,255,165,0.15);color:var(--accent-green);border:1px solid rgba(6,255,165,0.3)}
+    .badge-red{background:rgba(255,71,87,0.15);color:var(--accent-red);border:1px solid rgba(255,71,87,0.3)}
+
+    /* ── Toast ── */
+    #toast{
+      position:fixed;bottom:2rem;right:2rem;z-index:9999;
+      background:var(--panel);border:1px solid var(--border);
+      border-radius:10px;padding:0.85rem 1.25rem;
+      font-size:0.9rem;display:none;
+      animation:slideIn 0.3s ease;
+      box-shadow:0 8px 32px rgba(0,0,0,0.4);
+      max-width:320px;
+    }
+    @keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+    /* ── Grid Helpers ── */
+    .grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+    .grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+    .grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.25rem}
+    .container{max-width:1300px;margin:0 auto;padding:0 1.5rem}
+    .section{padding:2.5rem 0}
+
+    /* ── Footer ── */
+    footer{
+      position:relative;z-index:1;
+      border-top:1px solid var(--border);
+      background:var(--deep);
+      padding:2rem;text-align:center;
+      color:var(--text-dim);font-size:0.85rem;
+    }
+    footer a{color:var(--accent-blue);text-decoration:none}
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:var(--void)}
+    ::-webkit-scrollbar-thumb{background:rgba(0,212,255,0.3);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(0,212,255,0.5)}
+
+    /* ── Utility ── */
+    .text-center{text-align:center}
+    .mt-1{margin-top:0.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:1.5rem}.mt-4{margin-top:2rem}
+    .mb-1{margin-bottom:0.5rem}.mb-2{margin-bottom:1rem}.mb-3{margin-bottom:1.5rem}
+    .flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}
+    .gap-1{gap:0.5rem}.gap-2{gap:1rem}.flex-wrap{flex-wrap:wrap}
+    .font-mono{font-family:'Share Tech Mono',monospace}
+    .text-blue{color:var(--accent-blue)}.text-purple{color:var(--accent-purple)}
+    .text-gold{color:var(--accent-gold)}.text-green{color:var(--accent-green)}
+    .text-dim{color:var(--text-dim)}.text-sm{font-size:0.85rem}
+
+    {% block extra_styles %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<!-- Starfield -->
+<div id="starfield"></div>
+
+<!-- Navigation -->
+<nav>
+  <a href="/" class="nav-logo">COSMO<span>VIEW</span></a>
+  <div class="nav-links" id="navLinks">
+    <a href="/" {% if request.path=='/' %}class="active"{% endif %}><i class="fas fa-home"></i>Home</a>
+    <a href="/apod" {% if request.path=='/apod' %}class="active"{% endif %}><i class="fas fa-image"></i>APOD</a>
+    <a href="/iss" {% if request.path=='/iss' %}class="active"{% endif %}><i class="fas fa-satellite"></i>ISS Tracker</a>
+    <a href="/planets" {% if request.path=='/planets' %}class="active"{% endif %}><i class="fas fa-globe"></i>Planets</a>
+    <a href="/news" {% if request.path=='/news' %}class="active"{% endif %}><i class="fas fa-newspaper"></i>News</a>
+    <a href="/explorer" {% if request.path=='/explorer' %}class="active"{% endif %}><i class="fas fa-rocket"></i>Explorer</a>
+  </div>
+  <div class="nav-hamburger" id="hamburger" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<div id="toast"></div>
+
+<footer>
+  <p>🚀 <strong>CosmoView</strong> — Built with <a href="https://api.nasa.gov/" target="_blank">NASA APIs</a>, <a href="http://open-notify.org/" target="_blank">Open Notify</a> & <a href="https://spaceflightnewsapi.net/" target="_blank">Spaceflight News API</a></p>
+  <p class="mt-1">Built with Flask and real-world space APIs to explore the universe interactively.</p>
+</footer>
+
+<script>
+// ── Starfield ──────────────────────────────────────────────────────────────
+(function(){
+  const sf = document.getElementById('starfield');
+  const W = window.innerWidth, H = window.innerHeight;
+  for(let i=0;i<220;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    const size = Math.random()*2.5+0.5;
+    const minOp = (Math.random()*0.3+0.1).toFixed(2);
+    s.style.cssText=`
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${size}px;height:${size}px;
+      background:hsl(${200+Math.random()*60},80%,${70+Math.random()*30}%);
+      --d:${(Math.random()*4+2).toFixed(1)}s;
+      --min-op:${minOp};
+      animation-delay:${(Math.random()*5).toFixed(1)}s;
+    `;
+    sf.appendChild(s);
+  }
+  // Shooting stars
+  for(let i=0;i<5;i++){
+    const ss = document.createElement('div');
+    ss.className='shooting-star';
+    ss.style.cssText=`
+      left:${Math.random()*60}%;top:${Math.random()*40}%;
+      animation-delay:${(Math.random()*10).toFixed(1)}s;
+      animation-duration:${(Math.random()*2+2).toFixed(1)}s;
+    `;
+    sf.appendChild(ss);
+  }
+})();
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg, type='info'){
+  const t = document.getElementById('toast');
+  const colors = {info:'var(--accent-blue)',success:'var(--accent-green)',error:'var(--accent-red)',warning:'var(--accent-gold)'};
+  t.innerHTML = `<span style="color:${colors[type]||colors.info}">${msg}</span>`;
+  t.style.display='block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.style.display='none', 3200);
+}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

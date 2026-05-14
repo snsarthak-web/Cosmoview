@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}CosmoView{% endblock %}
+
+{% block extra_styles %}
+.hero{
+  min-height:92vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:2rem;
+  background:radial-gradient(ellipse 100% 70% at 50% -20%,rgba(0,212,255,0.07) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 40% at 80% 50%,rgba(180,79,255,0.05) 0%,transparent 50%);
+}
+.hero-inner{max-width:800px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.25);
+  border-radius:50px;padding:0.4rem 1rem;font-size:0.8rem;
+  color:var(--accent-blue);letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:2rem;animation:fadeInDown 0.8s ease;
+}
+.hero h1{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(2.5rem,8vw,5rem);
+  font-weight:900;line-height:1.1;
+  margin-bottom:1.25rem;
+  animation:fadeInUp 0.8s ease 0.2s both;
+}
+.hero p{
+  font-size:1.2rem;color:var(--text-dim);max-width:550px;margin:0 auto 2.5rem;
+  line-height:1.7;animation:fadeInUp 0.8s ease 0.4s both;
+}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeInUp 0.8s ease 0.6s both}
+.feature-cards{padding:4rem 0;background:rgba(0,0,0,0.3)}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+.feature-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:2rem;text-align:center;
+  transition:all 0.3s;cursor:pointer;text-decoration:none;color:var(--text);
+}
+.feature-card:hover{transform:translateY(-6px);border-color:var(--c, var(--accent-blue));box-shadow:0 0 30px var(--cs,rgba(0,212,255,0.2))}
+.feature-icon{font-size:2.5rem;margin-bottom:1rem}
+.feature-card h3{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:600;letter-spacing:0.05em;margin-bottom:0.5rem}
+.feature-card p{font-size:0.88rem;color:var(--text-dim);line-height:1.6}
+.stats-bar{
+  padding:2.5rem 0;
+  background:linear-gradient(135deg,rgba(0,212,255,0.04) 0%,rgba(180,79,255,0.04) 100%);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;text-align:center}
+.stat-item h2{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:700}
+.stat-item p{color:var(--text-dim);font-size:0.85rem;margin-top:0.25rem}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <i class="fas fa-star"></i> Your Window to the Universe
+    </div>
+    <h1>
+      <span class="gradient-text">Explore the</span><br>
+      Cosmos with<br>
+      <span style="color:var(--accent-gold)">NASA's Data</span>
+    </h1>
+    <p>Real-time space data, daily astronomy photos, live ISS tracking, planet encyclopaedia, and the latest space news — all in one dark-themed explorer.</p>
+    <div class="hero-btns">
+      <a href="/apod" class="btn btn-primary"><i class="fas fa-image"></i> Today's APOD</a>
+      <a href="/explorer" class="btn btn-purple"><i class="fas fa-rocket"></i> Random Explorer</a>
+      <a href="/iss" class="btn btn-secondary"><i class="fas fa-satellite"></i> Track the ISS</a>
+    </div>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item"><h2 class="text-blue" id="stat-astro">—</h2><p>Astronauts in Space</p></div>
+      <div class="stat-item"><h2 class="text-purple">8</h2><p>Planets Profiled</p></div>
+      <div class="stat-item"><h2 class="text-gold">3</h2><p>Live APIs Connected</p></div>
+      <div class="stat-item"><h2 class="text-green">∞</h2><p>Universe to Explore</p></div>
+    </div>
+  </div>
+</div>
+
+<section class="feature-cards">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3rem">
+      <h2 style="font-family:'Orbitron',sans-serif;font-size:1.6rem;letter-spacing:0.05em">Mission Control</h2>
+      <p class="text-dim mt-1">Six modules to explore everything space has to offer</p>
+    </div>
+    <div class="feature-grid">
+      <a href="/apod" class="feature-card" style="--c:var(--accent-blue);--cs:rgba(0,212,255,0.2)">
+        <div class="feature-icon">🌌</div>
+        <h3>APOD Gallery</h3>
+        <p>NASA's Astronomy Picture of the Day — browse by date, download HD wallpapers, search the archive.</p>
+      </a>
+      <a href="/iss" class="feature-card" style="--c:var(--accent-green);--cs:rgba(6,255,165,0.2)">
+        <div class="feature-icon">🛸</div>
+        <h3>ISS Live Tracker</h3>
+        <p>Real-time ISS position, latitude, longitude, speed, and the names of all astronauts currently aboard.</p>
+      </a>
+      <a href="/planets" class="feature-card" style="--c:var(--accent-purple);--cs:rgba(180,79,255,0.2)">
+        <div class="feature-icon">🪐</div>
+        <h3>Planet Encyclopedia</h3>
+        <p>Deep-dive fact cards for all 8 planets — gravity, temperature, moons, atmosphere & fun facts.</p>
+      </a>
+      <a href="/news" class="feature-card" style="--c:var(--accent-gold);--cs:rgba(255,209,102,0.2)">
+        <div class="feature-icon">📡</div>
+        <h3>Space News</h3>
+        <p>Latest articles, rocket launches, and NASA mission reports from Spaceflight News API.</p>
+      </a>
+      <a href="/explorer" class="feature-card" style="--c:var(--accent-red);--cs:rgba(255,71,87,0.2)">
+        <div class="feature-icon">🎲</div>
+        <h3>Universe Explorer</h3>
+        <p>Press a button, get a random APOD from any date in NASA's archive. Pure cosmic serendipity.</p>
+      </a>
+      <a href="/apod" class="feature-card" style="--c:var(--accent-blue);--cs:rgba(0,212,255,0.15)">
+        <div class="feature-icon">⭐</div>
+        <h3>Favorites</h3>
+        <p>Save your favorite astronomical images and videos to your personal collection using SQLite.</p>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+fetch('/api/iss/astronauts').then(r=>r.json()).then(d=>{
+  document.getElementById('stat-astro').textContent = d.number || '—';
+}).catch(()=>{});
+</script>
+{% endblock %}

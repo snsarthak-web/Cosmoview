@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Space News{% endblock %}
+
+{% block extra_styles %}
+.news-tabs{display:flex;gap:0.5rem;margin-bottom:2rem;flex-wrap:wrap}
+.tab-btn{
+  padding:0.5rem 1.2rem;border-radius:8px;cursor:pointer;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text-dim);font-family:'Exo 2',sans-serif;font-size:0.85rem;
+  font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
+  transition:all 0.2s;
+}
+.tab-btn.active,.tab-btn:hover{background:rgba(0,212,255,0.1);border-color:var(--accent-blue);color:var(--accent-blue)}
+.news-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;transition:all 0.3s;display:flex;flex-direction:column;
+}
+.news-card:hover{transform:translateY(-4px);border-color:rgba(0,212,255,0.3);box-shadow:0 8px 30px rgba(0,0,0,0.4)}
+.news-thumb{height:180px;overflow:hidden;background:var(--nebula);position:relative}
+.news-thumb img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
+.news-card:hover .news-thumb img{transform:scale(1.05)}
+.news-thumb-placeholder{height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--text-dim)}
+.news-body{padding:1.25rem;flex:1;display:flex;flex-direction:column}
+.news-source{font-size:0.75rem;color:var(--accent-blue);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem}
+.news-title{font-weight:600;font-size:0.95rem;line-height:1.45;margin-bottom:0.65rem;flex:1}
+.news-summary{font-size:0.83rem;color:var(--text-dim);line-height:1.6;margin-bottom:1rem;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.news-footer{display:flex;justify-content:space-between;align-items:center;padding-top:0.75rem;border-top:1px solid var(--border)}
+.news-date{font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--text-dim)}
+.load-more-wrap{text-align:center;padding:2rem 0}
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <h1 class="gradient-text">Space News</h1>
+  <p>Latest articles, rocket launches, and NASA mission updates from around the cosmos.</p>
+</div>
+
+<div class="container section">
+  <div class="news-tabs">
+    <button class="tab-btn active" onclick="switchTab('article',this)"><i class="fas fa-newspaper"></i> Articles</button>
+    <button class="tab-btn" onclick="switchTab('blog',this)"><i class="fas fa-blog"></i> Blogs</button>
+    <button class="tab-btn" onclick="switchTab('report',this)"><i class="fas fa-file-alt"></i> Reports</button>
+  </div>
+
+  <div class="grid-3" id="newsGrid">
+    <div class="loader" style="grid-column:1/-1"><div class="spinner"></div><span>Fetching space news…</span></div>
+  </div>
+
+  <div class="load-more-wrap">
+    <button class="btn btn-secondary" id="loadMoreBtn" onclick="loadMore()" style="display:none">
+      <i class="fas fa-chevron-down"></i> Load More
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentType = 'article';
+let currentOffset = 0;
+const PAGE_SIZE = 12;
+
+function switchTab(type, btn){
+  currentType = type;
+  currentOffset = 0;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('newsGrid').innerHTML = '<div class="loader" style="grid-column:1/-1"><div class="spinner"></div><span>Loading…</span></div>';
+  document.getElementById('loadMoreBtn').style.display='none';
+  loadNews(true);
+}
+
+function loadNews(reset=false){
+  if(reset) currentOffset = 0;
+  fetch(`/api/news?type=${currentType}&limit=${PAGE_SIZE}&offset=${currentOffset}`)
+    .then(r=>r.json()).then(data=>{
+      const items = data.results || [];
+      const grid = document.getElementById('newsGrid');
+      if(reset) grid.innerHTML = '';
+      if(!items.length && reset){
+        grid.innerHTML='<div class="text-center text-dim" style="grid-column:1/-1;padding:4rem">No news found.</div>';
+        return;
+      }
+      items.forEach(item=>{
+        const d = new Date(item.published_at);
+        const dateStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        const card = document.createElement('div');
+        card.className = 'news-card';
+        card.innerHTML = `
+          <div class="news-thumb">
+            ${item.image_url
+              ? `<img src="${item.image_url}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'news-thumb-placeholder\\'>📡</div>'">`
+              : `<div class="news-thumb-placeholder">🚀</div>`}
+          </div>
+          <div class="news-body">
+            <div class="news-source">${item.news_site || 'Space News'}</div>
+            <div class="news-title">${item.title}</div>
+            <div class="news-summary">${item.summary || ''}</div>
+            <div class="news-footer">
+              <span class="news-date">${dateStr}</span>
+              <a href="${item.url}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+                <i class="fas fa-external-link-alt"></i> Read
+              </a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      currentOffset += PAGE_SIZE;
+      const total = data.count || 0;
+      document.getElementById('loadMoreBtn').style.display = currentOffset < total ? 'inline-flex' : 'none';
+    }).catch(()=>{
+      document.getElementById('newsGrid').innerHTML='<div class="text-center text-dim" style="grid-column:1/-1;padding:4rem">⚠️ Could not load news. Check your connection.</div>';
+    });
+}
+
+function loadMore(){ loadNews(false); }
+
+// Init
+loadNews(true);
+</script>
+{% endblock %}

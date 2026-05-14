@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}ISS Live Tracker{% endblock %}
+
+{% block extra_styles %}
+.iss-grid{display:grid;grid-template-columns:1fr 340px;gap:2rem;padding:2rem 0}
+@media(max-width:900px){.iss-grid{grid-template-columns:1fr}}
+#map-container{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;position:relative;min-height:420px;
+}
+#iss-map{width:100%;height:420px}
+.coord-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem}
+.coord-row{display:flex;justify-content:space-between;align-items:center;padding:0.7rem 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.coord-row:last-child{border-bottom:none}
+.coord-label{color:var(--text-dim);font-size:0.85rem;display:flex;align-items:center;gap:0.5rem}
+.coord-value{font-family:'Share Tech Mono',monospace;font-size:1rem;color:var(--accent-green)}
+.live-dot{width:10px;height:10px;background:var(--accent-green);border-radius:50%;animation:pulse-green 1.5s infinite;display:inline-block}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(6,255,165,0.5)}50%{box-shadow:0 0 0 8px rgba(6,255,165,0)}}
+.astronaut-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;
+  margin-bottom:0.75rem;transition:border-color 0.2s;
+}
+.astronaut-card:hover{border-color:rgba(0,212,255,0.3)}
+.astronaut-avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.astronaut-name{font-weight:600;font-size:0.95rem}
+.astronaut-craft{font-size:0.78rem;color:var(--text-dim);margin-top:0.2rem}
+.update-time{font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--text-dim)}
+.map-overlay{
+  position:absolute;top:1rem;left:1rem;
+  background:rgba(6,6,20,0.85);backdrop-filter:blur(8px);
+  border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.85rem;
+  font-size:0.78rem;display:flex;align-items:center;gap:0.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <h1><span class="gradient-text">ISS Live Tracker</span></h1>
+  <p>Real-time position of the International Space Station and the crew currently aboard.</p>
+</div>
+
+<div class="container">
+  <div class="iss-grid">
+    <!-- Map -->
+    <div>
+      <div id="map-container">
+        <div id="iss-map"></div>
+        <div class="map-overlay">
+          <span class="live-dot"></span>
+          <span>LIVE — updating every 5s</span>
+        </div>
+      </div>
+      <p class="text-dim text-sm mt-2" style="text-align:center">
+        The ISS orbits at ~400 km altitude, traveling at 7.66 km/s — completing one orbit every 90 minutes.
+      </p>
+    </div>
+
+    <!-- Side Panel -->
+    <div>
+      <div class="coord-panel">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:0.95rem;letter-spacing:0.06em">ISS COORDINATES</h3>
+          <span class="live-dot"></span>
+        </div>
+        <div class="coord-row">
+          <span class="coord-label"><i class="fas fa-arrows-alt-v text-blue"></i> Latitude</span>
+          <span class="coord-value" id="lat">—</span>
+        </div>
+        <div class="coord-row">
+          <span class="coord-label"><i class="fas fa-arrows-alt-h text-blue"></i> Longitude</span>
+          <span class="coord-value" id="lon">—</span>
+        </div>
+        <div class="coord-row">
+          <span class="coord-label"><i class="fas fa-clock text-gold"></i> Timestamp</span>
+          <span class="coord-value text-gold" id="ts" style="font-size:0.82rem">—</span>
+        </div>
+        <div class="coord-row">
+          <span class="coord-label"><i class="fas fa-tachometer-alt text-purple"></i> Orbital Speed</span>
+          <span class="coord-value text-purple">~27,600 km/h</span>
+        </div>
+        <div class="coord-row">
+          <span class="coord-label"><i class="fas fa-mountain text-green"></i> Altitude</span>
+          <span class="coord-value" style="color:var(--accent-green)">~408 km</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="font-family:'Orbitron',sans-serif;font-size:0.95rem;letter-spacing:0.06em">
+            <i class="fas fa-user-astronaut text-blue"></i> CREW IN SPACE
+          </h3>
+          <span class="badge badge-green" id="crew-count">loading…</span>
+        </div>
+        <div id="astronaut-list">
+          <div class="loader"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fun Facts -->
+  <div class="panel mt-3 mb-4">
+    <h3 style="font-family:'Orbitron',sans-serif;font-size:0.95rem;letter-spacing:0.06em;margin-bottom:1.25rem">
+      <i class="fas fa-satellite text-gold"></i> ISS BY THE NUMBERS
+    </h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;text-align:center">
+      <div><div style="font-family:'Orbitron',sans-serif;font-size:1.6rem;color:var(--accent-blue)">420,000</div><div class="text-dim text-sm">kg total mass</div></div>
+      <div><div style="font-family:'Orbitron',sans-serif;font-size:1.6rem;color:var(--accent-purple)">109m</div><div class="text-dim text-sm">width (solar arrays)</div></div>
+      <div><div style="font-family:'Orbitron',sans-serif;font-size:1.6rem;color:var(--accent-gold)">16</div><div class="text-dim text-sm">sunrises per day</div></div>
+      <div><div style="font-family:'Orbitron',sans-serif;font-size:1.6rem;color:var(--accent-green)">1998</div><div class="text-dim text-sm">construction began</div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Init map
+const map = L.map('iss-map', {zoomControl:true, attributionControl:false}).setView([0,0], 2);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom:18
+}).addTo(map);
+
+// Custom ISS icon
+const issIcon = L.divIcon({
+  html: '<div style="font-size:28px;filter:drop-shadow(0 0 8px #00d4ff)">🛸</div>',
+  iconSize:[32,32],iconAnchor:[16,16],className:''
+});
+
+let issMarker = L.marker([0,0], {icon:issIcon}).addTo(map);
+let trackLine = L.polyline([], {color:'rgba(0,212,255,0.4)',weight:1.5,dashArray:'5,8'}).addTo(map);
+let trackPoints = [];
+
+function updateISS(){
+  fetch('/api/iss/location').then(r=>r.json()).then(d=>{
+    if(!d.iss_position) return;
+    const lat = parseFloat(d.iss_position.latitude);
+    const lon = parseFloat(d.iss_position.longitude);
+    document.getElementById('lat').textContent = lat.toFixed(4)+'°';
+    document.getElementById('lon').textContent = lon.toFixed(4)+'°';
+    const ts = new Date(d.timestamp*1000);
+    document.getElementById('ts').textContent = ts.toUTCString().slice(0,25);
+    issMarker.setLatLng([lat,lon]);
+    trackPoints.push([lat,lon]);
+    if(trackPoints.length > 60) trackPoints.shift();
+    trackLine.setLatLngs(trackPoints);
+    map.panTo([lat,lon],{animate:true,duration:1});
+  }).catch(()=>{});
+}
+
+function loadAstronauts(){
+  fetch('/api/iss/astronauts').then(r=>r.json()).then(d=>{
+    document.getElementById('crew-count').textContent = (d.number||'?')+' crew';
+    const list = document.getElementById('astronaut-list');
+    const astronauts = d.people || [];
+    list.innerHTML = astronauts.map((a,i)=>`
+      <div class="astronaut-card">
+        <div class="astronaut-avatar">${['👨‍🚀','👩‍🚀','🧑‍🚀'][i%3]}</div>
+        <div>
+          <div class="astronaut-name">${a.name}</div>
+          <div class="astronaut-craft"><i class="fas fa-satellite" style="font-size:0.7rem"></i> ${a.craft}</div>
+        </div>
+      </div>
+    `).join('');
+  }).catch(()=>{
+    document.getElementById('astronaut-list').innerHTML='<p class="text-dim text-sm">Could not load crew data.</p>';
+  });
+}
+
+updateISS();
+loadAstronauts();
+setInterval(updateISS, 5000);
+</script>
+{% endblock %}

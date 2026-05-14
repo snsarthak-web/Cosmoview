@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Planet Encyclopedia{% endblock %}
+
+{% block extra_styles %}
+.planet-selector{
+  display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center;
+  padding:2rem 0 1rem;
+}
+.planet-btn{
+  display:flex;flex-direction:column;align-items:center;gap:0.4rem;
+  padding:0.85rem 1.1rem;border-radius:12px;cursor:pointer;
+  background:var(--card);border:2px solid transparent;
+  transition:all 0.25s;min-width:80px;
+  color:var(--text);font-size:0.78rem;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;
+}
+.planet-btn .p-emoji{font-size:1.8rem}
+.planet-btn:hover{transform:translateY(-4px)}
+.planet-btn.active{border-color:var(--pc,var(--accent-blue));box-shadow:0 0 20px var(--ps,rgba(0,212,255,0.3))}
+.planet-detail{
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+  padding:2rem 0;
+}
+@media(max-width:800px){.planet-detail{grid-template-columns:1fr}}
+.planet-visual{
+  border-radius:20px;overflow:hidden;
+  background:var(--card);border:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:3rem 2rem;text-align:center;position:relative;
+  min-height:380px;
+}
+.planet-orb{
+  width:180px;height:180px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:80px;margin-bottom:1.5rem;
+  animation:orbit-float 6s ease-in-out infinite;
+  position:relative;
+}
+.planet-orb::after{
+  content:'';position:absolute;inset:-12px;border-radius:50%;
+  border:2px solid var(--pc,rgba(0,212,255,0.3));
+  animation:orbit-ring 8s linear infinite;
+  opacity:0.4;
+}
+@keyframes orbit-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes orbit-ring{from{transform:rotateX(75deg) rotate(0)}to{transform:rotateX(75deg) rotate(360deg)}}
+.planet-name-display{
+  font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:900;
+  letter-spacing:0.06em;margin-bottom:0.5rem;
+}
+.planet-desc{color:var(--text-dim);font-size:0.9rem;line-height:1.7;max-width:380px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem}
+.stat-tile{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1rem;transition:border-color 0.2s;
+}
+.stat-tile:hover{border-color:rgba(0,212,255,0.25)}
+.stat-tile .label{font-size:0.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.35rem}
+.stat-tile .value{font-family:'Share Tech Mono',monospace;font-size:0.92rem;font-weight:600}
+.facts-list{list-style:none;display:flex;flex-direction:column;gap:0.65rem;margin-top:1rem}
+.facts-list li{
+  display:flex;align-items:flex-start;gap:0.75rem;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:0.75rem 1rem;font-size:0.88rem;line-height:1.5;
+}
+.facts-list li::before{content:'✦';color:var(--accent-gold);flex-shrink:0;margin-top:1px}
+.planet-rings-badge{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:rgba(255,209,102,0.1);border:1px solid rgba(255,209,102,0.3);
+  color:var(--accent-gold);border-radius:20px;padding:0.25rem 0.75rem;font-size:0.8rem;margin-top:0.75rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+  <h1 class="gradient-text">Planet Encyclopedia</h1>
+  <p>Explore all 8 planets of our solar system — from scorching Mercury to the distant winds of Neptune.</p>
+</div>
+
+<div class="container">
+  <!-- Planet selector -->
+  <div class="planet-selector" id="planetSelector"></div>
+
+  <!-- Planet detail view -->
+  <div id="planetDetail">
+    <div class="loader"><div class="spinner"></div><span>Loading planets…</span></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PLANET_ORDER = ['mercury','venus','earth','mars','jupiter','saturn','uranus','neptune'];
+const PLANET_EMOJIS = {
+  mercury:'☿',venus:'♀',earth:'🌍',mars:'♂',
+  jupiter:'♃',saturn:'🪐',uranus:'⛢',neptune:'🔵'
+};
+let allPlanets = {};
+let current = 'earth';
+
+fetch('/api/planets').then(r=>r.json()).then(data=>{
+  allPlanets = data;
+  buildSelector();
+  showPlanet('earth');
+});
+
+function buildSelector(){
+  const sel = document.getElementById('planetSelector');
+  sel.innerHTML = PLANET_ORDER.map(key=>{
+    const p = allPlanets[key];
+    return `<button class="planet-btn" id="btn-${key}" onclick="showPlanet('${key}')"
+      style="--pc:${p.color};--ps:${p.color}40">
+      <span class="p-emoji">${PLANET_EMOJIS[key]}</span>
+      <span>${p.name}</span>
+    </button>`;
+  }).join('');
+}
+
+function showPlanet(key){
+  current = key;
+  const p = allPlanets[key];
+  // Update active button
+  document.querySelectorAll('.planet-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('btn-'+key)?.classList.add('active');
+
+  const detail = document.getElementById('planetDetail');
+  detail.innerHTML = `
+    <div class="planet-detail">
+      <!-- Visual -->
+      <div class="planet-visual" style="background:radial-gradient(ellipse at 30% 30%,${p.color}18 0%,transparent 60%)">
+        <div class="planet-orb" style="--pc:${p.color};background:radial-gradient(circle at 35% 35%,${p.color}60,${p.color}20,#000)">
+          ${PLANET_EMOJIS[key]}
+        </div>
+        <div class="planet-name-display" style="color:${p.color}">${p.name}</div>
+        <p class="planet-desc">${p.description}</p>
+        ${p.rings ? '<div class="planet-rings-badge"><i class="fas fa-ring"></i> Has Ring System</div>' : ''}
+        ${p.moons > 0 ? `<div class="planet-rings-badge" style="border-color:rgba(0,212,255,0.3);color:var(--accent-blue);background:rgba(0,212,255,0.1)">
+          <i class="fas fa-moon"></i> ${p.moons} Moon${p.moons>1?'s':''}
+        </div>` : ''}
+      </div>
+
+      <!-- Stats + Facts -->
+      <div>
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:0.9rem;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:1rem">PLANETARY STATS</h3>
+        <div class="stats-grid">
+          <div class="stat-tile"><div class="label">☀️ Distance from Sun</div><div class="value" style="color:${p.color}">${p.distance_from_sun}</div></div>
+          <div class="stat-tile"><div class="label">📏 Diameter</div><div class="value">${p.diameter}</div></div>
+          <div class="stat-tile"><div class="label">⚖️ Mass</div><div class="value">${p.mass}</div></div>
+          <div class="stat-tile"><div class="label">🌊 Gravity</div><div class="value" style="color:var(--accent-blue)">${p.gravity}</div></div>
+          <div class="stat-tile"><div class="label">⏰ Day Length</div><div class="value">${p.day_length}</div></div>
+          <div class="stat-tile"><div class="label">🔄 Year Length</div><div class="value">${p.year_length}</div></div>
+          <div class="stat-tile"><div class="label">🌡️ Temperature</div><div class="value" style="color:var(--accent-red)">${p.avg_temperature}</div></div>
+          <div class="stat-tile"><div class="label">💨 Atmosphere</div><div class="value" style="font-size:0.8rem;line-height:1.4">${p.atmosphere.slice(0,40)}…</div></div>
+        </div>
+
+        <h3 style="font-family:'Orbitron',sans-serif;font-size:0.9rem;letter-spacing:0.08em;color:var(--text-dim);margin-top:1.75rem;margin-bottom:0.5rem">⚡ FUN FACTS</h3>
+        <ul class="facts-list">
+          ${p.fun_facts.map(f=>`<li>${f}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+</script>
+{% endblock %}

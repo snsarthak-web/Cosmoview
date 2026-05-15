@@ -34,14 +34,16 @@ Explore the cosmos with NASA’s data through an interactive Flask-powered astro
 ![Home](Screenshots/Home.png)
 
 ### ISS Tracker
-![ISS](Screenshots/ISS Live Tracker.png)
+![ISS](Screenshots/ISS.png)
 
 ### Planet Encyclopedia
 ![Planets](Screenshots/Planet.png)
 
 ### News
 ![News](Screenshots/News.png)
-              
+
+### Astronomy Picture of the Day
+![Astronomy Picture of the Day](<Screenshots/Astronomy Picture of the Day.png>)              
   _ _ _
 
 ## ⚡ Quick Start

@@ -1,6 +1,6 @@
 # 🚀 CosmoView — Space & Astronomy Explorer
 
-A beginner-friendly Flask web app that brings the cosmos to your browser using real NASA APIs.
+Explore the cosmos with NASA’s data through an interactive Flask-powered astronomy web application.
 
 ---
 
@@ -28,6 +28,21 @@ A beginner-friendly Flask web app that brings the cosmos to your browser using r
   - [Spaceflight News API v4](https://api.spaceflightnewsapi.net/) — space news
 
 ---
+## 📸 Screenshots
+
+### Home Page
+![Home](Screenshots/Home.png)
+
+### ISS Tracker
+![ISS](Screenshots/ISS Live Tracker.png)
+
+### Planet Encyclopedia
+![Planets](Screenshots/Planet.png)
+
+### News
+![News](Screenshots/News.png)
+              
+  _ _ _
 
 ## ⚡ Quick Start
 
@@ -91,7 +106,7 @@ cosmoview/
 
 ---
 
-## 🎓 What You'll Learn
+## 🎓📚 Concepts Demonstrated
 
 - Flask routing and Jinja2 templating
 - Calling real-world REST APIs with `requests`
@@ -101,19 +116,7 @@ cosmoview/
 - JavaScript fetch API for async data loading
 - Interactive maps with Leaflet.js
 
----
 
-## 🌟 Is This a Beginner or Strong Project?
-
-**Both!** Here's how to think about it:
-
-- ✅ **Beginner-friendly**: No complex frameworks, clear code structure, free APIs
-- 💪 **Portfolio-worthy**: Multiple APIs, live data, real database, polished UI
-- 📈 **Extendable**: Add user auth, Mars Rover images, asteroid tracker, space quiz
-
-It's the perfect project to show on your GitHub/LinkedIn as a **practical, real-world Flask application**.
-
----
 
 ## 🔑 API Keys & Rate Limits
 
@@ -125,4 +128,4 @@ It's the perfect project to show on your GitHub/LinkedIn as a **practical, real-
 
 ---
 
-Built with ❤️ and powered by NASA's open data.
+Built with ❤️ and using Flask, real-time APIs, NASA’s open space data.
